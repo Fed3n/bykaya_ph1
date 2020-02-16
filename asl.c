@@ -2,9 +2,11 @@
 #include "pcb.h"
 
 /* Global Variables*/
-//static semd_t semd_table[MAXPROC]; messa in .h per i test
-static struct list_head semdFree_h;
-static struct list_head semd_h;
+HIDDEN semd_t semd_table[MAXPROC]; 
+HIDDEN LIST_HEAD(semdFree_h);
+HIDDEN LIST_HEAD(semd_h);
+
+HIDDEN int init = 0;  //variabile a scopo di inizializzazione degli indirizzi dei semafori
 
 /* funzione di inizializzazione
    si occupa di inizializzare la semd_table e le liste di semafori liberi ed attivi
@@ -12,15 +14,11 @@ static struct list_head semd_h;
 
 void initASL()
 {
-	for (int i = 0; i < MAXPROC+1; i++)
-		keys[i] = i;
 	for (int index = 0; index < MAXPROC+1; index++)
 	{
 		semd_t semaphore;
 		INIT_LIST_HEAD(&semaphore.s_next);
-		semaphore.s_key = /*&(semd_table[index]);*/&(keys[index]); //andrebbe inizializzato ad un valore standard ma non 
-									   //posso farlo se no va ad accedere a zone di memoria non
-									   //consentite (per il test da terminale)
+		semaphore.s_key = &init; //per inizializzare ho scelto l'indirizzo di una variabile intera
 		INIT_LIST_HEAD(&semaphore.s_procQ);
 		semd_table[index] = semaphore;
 	}
@@ -39,9 +37,9 @@ void initASL()
 semd_t* getSemd(int *key)
 {
 	semd_t* semd = NULL;
-	struct semd_t* pos;
+	semd_t* pos = NULL;
 	list_for_each_entry(pos,&semd_h,s_next)
-		if (*(pos->s_key) == *key)
+		if (pos->s_key == key)
 			semd = pos;
 	return semd;		
 }
@@ -56,13 +54,13 @@ semd_t* getSemd(int *key)
 
 int insertBlocked(int *key, pcb_t *p)
 {
-	semd_t *semd = getSemd(key);
+	semd_t *semd =  getSemd(key);
 	if (semd == NULL) 
 		if (list_empty(&semdFree_h))
 			return 1;
 		else
 		{
-		   	semd = semdFree_h.next; 
+		   	semd = container_of(semdFree_h.next,semd_t,s_next); 
 			list_del(semdFree_h.next);
 			semd->s_key = key;			
 			INIT_LIST_HEAD(&semd->s_procQ);
@@ -162,7 +160,7 @@ pcb_t* headBlocked(int *key)
 	p: puntatore al processo da rimuovere
 */
 
-/*
+
 void outChildBlocked(pcb_t *p)
 {
 	if (p != NULL)
@@ -175,10 +173,12 @@ void outChildBlocked(pcb_t *p)
 		} while (pcb_son != NULL);
 	}
 }
-*/
+
 
 /*test*/
 
+/*
+//stampa; versione per i terminale
 void semd_tTablePrint()
 {
 	//vettore dei SEMD
@@ -208,17 +208,50 @@ void semd_tTablePrint()
 	}
 }
 
-pcb_t* initPcb()
+//stampa; versione per i test sulle macchine
+void tablePrint()
 {
-	
-	pcb_t *pcb;
-	pcb = (pcb_t*) malloc(sizeof(pcb_t));
-	INIT_LIST_HEAD(&pcb->p_next);
-	INIT_LIST_HEAD(&pcb->p_parent);
-	INIT_LIST_HEAD(&pcb->p_child);
-	INIT_LIST_HEAD(&pcb->p_sib);
-	pcb->priority = 1;
-	pcb->p_semkey = 0;
-	return pcb;
+	//vettore dei SEMD
+	addokbuf(" \n");
+	addokbuf("vettore SEMD \n");
+	for (int index = 0; index < MAXPROC; index++)
+	{
+		addokbuf("semd[");
+		intprint(index); 		
+		addokbuf("]. ");
+		intprint(semd_table[index].s_key);
+		addokbuf(" \n");	
+	}
+	//lista semdFree
+	addokbuf("lista semdFree \n");
+	struct list_head* pos;
+	int count = 0;
+    	list_for_each(pos,&semdFree_h)
+	{
+		semd_t* sem = container_of(pos,semd_t,s_next);
+		intprint(count);
+		count++;
+		addokbuf("- ");
+		intprint(sem->s_key);
+		addokbuf("\n");
+	}
+	//lista ASL
+	addokbuf("lista ASL \n");
+	pos = NULL;
+    	list_for_each(pos,&semd_h) 
+	{
+		semd_t* sem = container_of(pos,semd_t,s_next);
+		addokbuf("chiave n. ");
+		intprint(sem->s_key);
+		addokbuf("\n");
+		struct list_head* block;
+		list_for_each(block,&sem->s_procQ){
+			addokbuf("	");
+			intprint(container_of(block,pcb_t,p_next));
+			addokbuf("\n");
+		}
+	}
+	addokbuf(" \n");
+}
+*/
 
-}	

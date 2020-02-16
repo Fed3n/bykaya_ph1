@@ -1,11 +1,11 @@
 #ifndef _TYPES11_H
 #define _TYPES11_H
 #ifdef TARGET_UMPS
-#include <umps/types.h>
+#include <umps_include/types.h>
 #endif
 #ifdef TARGET_UARM
 #define UARM_MACHINE_COMPILING
-#include <uarm/uARMtypes.h>
+#include <uarm_include/uARMtypes.h>
 #endif
 #include <listx.h>
 

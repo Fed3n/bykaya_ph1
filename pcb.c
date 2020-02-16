@@ -132,3 +132,58 @@ pcb_t *outProcQ(struct list_head *head, pcb_t *p) {
 		}
 	}
 }
+
+
+
+/* INIZIO PCB TREE */
+
+/*
+Chiama list_empty (che prende in input un list_head e ritorna 1 se la lista è vuota) su this->p_child,
+che è il list_head della lista dei figli di pcb_t
+*/
+int emptyChild(pcb_t *this){
+	return list_empty(&this->p_child);
+}
+
+/*
+Prima assegna prnt come genitore di p e poi aggiunge in coda il list_head p->sib al list_head prnt->p_child
+*/
+void insertChild(pcb_t *prnt, pcb_t *p){
+	p->p_parent = prnt;
+	list_add_tail(&p->p_sib, &prnt->p_child);
+}
+
+/*
+Se la lista dei figli di p non è vuota, rimuove p->child.next e lo ritorna
+*/
+pcb_t *removeChild(pcb_t *p){
+	if(emptyChild(p)) return NULL;
+	else{
+		/*Si memorizza il pcb_t da rimuovere*/
+		pcb_t *removed_p = container_of(p->p_child.next, pcb_t, p_sib);
+		list_del(p->p_child.next);
+		return removed_p;
+	}
+}
+
+/*
+Se p ha un padre, allora rimuove p dalla lista di p->parent->p_child e lo ritorna,
+altrimenti ritorna NULL
+*/
+pcb_t *outChild(pcb_t *p){
+	if(p->p_parent == NULL) return NULL;
+	else{
+		/*Si usa un puntatore al list_head p_sib di p per identificare l'elemento da rimuovere*/
+		struct list_head *target = &(p->p_sib);
+		struct list_head *iter;
+		/*Con un iteratore e il puntatore alla lista di figli del padre di p, si itera sulla lista
+		fino a trovare l'elemento cercato per poi cancellarlo*/
+		list_for_each(iter, &(p->p_parent->p_child)){
+			if(iter == target){
+				list_del(target);
+				break;
+			}
+		}
+		return p;
+	}
+}

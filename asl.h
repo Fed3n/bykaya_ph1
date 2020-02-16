@@ -5,10 +5,6 @@
 #include "const.h"
 #include "listx.h"
 
-//temporanee qui per i test
-semd_t semd_table[MAXPROC+1];
-int keys[MAXPROC+1];
-
 /* ASL handling functions */
 semd_t* getSemd(int *key);
 void initASL();
@@ -20,7 +16,6 @@ pcb_t* headBlocked(int *key);
 void outChildBlocked(pcb_t *p);
 
 //mia funzione per la stampa
-void semd_tTablePrint();
-pcb_t* initPcb();
+void tablePrint();
 
 #endif
