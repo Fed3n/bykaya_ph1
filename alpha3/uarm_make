@@ -1,0 +1,21 @@
+CC = arm-none-eabi-gcc
+LD = arm-none-eabi-ld
+
+UARM_DIR_PATH = ./uarm_include
+INCLUDE_DIR_PATH = ./
+
+CFLAGS = -mcpu=arm7tdmi -DTARGET_UARM=1 -I$(UARM_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall -O0
+LDFLAGS = -G0 -nostdlib -T $(UARM_DIR_PATH)/elf32ltsarm.h.uarmcore.x
+
+VPATH = $(UARM_DIR_PATH)
+
+all : kernel
+
+kernel : p1test_bikaya_v0.o pcb.o asl.o crtso.o libuarm.o
+	$(LD) -o $@ $^ $(LDFLAGS)
+
+%.o : %.s
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	-rm -f *.o kernel kernel.*.uarm

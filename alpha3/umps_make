@@ -1,0 +1,24 @@
+CC = mipsel-linux-gnu-gcc
+LD = mipsel-linux-gnu-ld
+
+UMPS_DIR_PATH = ./umps_include
+INCLUDE_DIR_PATH = ./
+
+CFLAGS =  -ffreestanding -DTARGET_UMPS=1 -mips1 -mfp32 -I$(UMPS_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall -O0
+LDFLAGS = -nostdlib -T $(UMPS_DIR_PATH)/umpscore.ldscript
+
+VPATH = $(UMPS_DIR_PATH)
+
+all : kernel.core.umps
+
+kernel.core.umps : kernel
+	umps2-elf2umps -k kernel
+
+kernel : p1test_bikaya_v0.o pcb.o asl.o crtso.o libumps.o
+	$(LD) -o $@ $^ $(LDFLAGS)
+
+%.o : %.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	-rm -f *.o kernel kernel.*.umps
