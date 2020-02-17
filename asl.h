@@ -15,7 +15,4 @@ pcb_t* outBlocked(pcb_t *p);
 pcb_t* headBlocked(int *key);
 void outChildBlocked(pcb_t *p);
 
-//mia funzione per la stampa
-void tablePrint();
-
 #endif

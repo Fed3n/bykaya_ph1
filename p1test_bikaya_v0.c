@@ -153,66 +153,6 @@ void adderrbuf(char *strp) {
     PANIC();
 }
 
-/*FUNZIONI PER LA STAMPA*/
-
-/*
-//converte un intero in stringa
-char* itoae(int n, char *s)
-{
-   int i, sign;
-
-   if ((sign = n) < 0)   
-      n = -n;   
-   i = 0;
-   do {  
-      s[i++] = n % 10 + '0';   
-   } while ((n /= 10) > 0);   
-   if (sign < 0)
-      s[i++] = '-';
-   s[i] = '\0';
-   reverse(s);
-
-   return s;
-}
-
-void reverse(char *s)
-{
-   int c, i, j, len;
-   len = 0;
-   char *p = s;
-   do {
-	p++;
-	len++;
-   } while(*p != '\0');
-
-   for (i = 0, j = len - 1; i < j; i++, j--) {
-      c = s[i];
-      s[i] = s[j];
-      s[j] = c;
-   }
-}
-
-//stampa di interi
-//non funziona bene se ci sono zeri a sinistra o a destra del numero
-void intprint(int r){
-	char *str = NULL;
-	str = itoae(r,str);
-	termprint(str,0);
-}
-
-//stampa le chiavi
-void semprint(){
-	addokbuf("KEYS: \n");
-	for (int i = 0; i < MAXSEM+1; i++){
-		addokbuf("sem[");
-		intprint(i);
-		addokbuf("]: ");
-		intprint(&sem[i]);
-		addokbuf(" \n");
-	}
-}
-*/
-
 /******************************************************************************
  * Main Test File
  ******************************************************************************/
@@ -302,7 +242,7 @@ int main() {
         freePcb(q);
     }
 
-    /* Removing the last element */
+    // Removing the last element
     q = removeProcQ(&qa);
     if (q != minproc)
         adderrbuf("ERROR: removeProcQ(): failed on last entry   ");
@@ -391,12 +331,11 @@ int main() {
 
 
     /* check ASL */
-
     initASL();
     addokbuf("Initializing active semaphore list   \n");
 
     /* check removeBlocked and insertBlocked */
-    addokbuf("Test insertBlocked(): test #1 started  \n");
+    addokbuf(" Test insertBlocked(): test #1 started  \n");
     for (i = 10; i < MAXPROC; i++) {
         procp[i] = allocPcb();
         if (insertBlocked(&sem[i], procp[i]))
@@ -413,7 +352,7 @@ int main() {
     /* check if semaphore descriptors are returned to the free list */
     p = removeBlocked(&sem[11]);
     if (insertBlocked(&sem[11], p))
-       adderrbuf("ERROR: removeBlocked(): fails to return to free list   ");
+        adderrbuf("ERROR: removeBlocked(): fails to return to free list   ");
 
     if (insertBlocked(&sem[MAXSEM], procp[9]) == FALSE)
         adderrbuf("ERROR: insertBlocked(): inserted more than MAXPROC   ");

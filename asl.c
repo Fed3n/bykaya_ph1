@@ -6,10 +6,8 @@ HIDDEN semd_t semd_table[MAXPROC];
 HIDDEN LIST_HEAD(semdFree_h);
 HIDDEN LIST_HEAD(semd_h);
 
-HIDDEN int init = 0;  //variabile a scopo di inizializzazione degli indirizzi dei semafori
-
-/* funzione di inizializzazione
-   si occupa di inizializzare la semd_table e le liste di semafori liberi ed attivi
+/* funzione di inizializzazione.
+   si occupa di inizializzare la semd_table e le liste di semafori liberi o attivi
 */
 
 void initASL()
@@ -18,7 +16,7 @@ void initASL()
 	{
 		semd_t semaphore;
 		INIT_LIST_HEAD(&semaphore.s_next);
-		semaphore.s_key = &init; //per inizializzare ho scelto l'indirizzo di una variabile intera
+		semaphore.s_key = NULL;    
 		INIT_LIST_HEAD(&semaphore.s_procQ);
 		semd_table[index] = semaphore;
 	}
@@ -30,7 +28,7 @@ void initASL()
 	INIT_LIST_HEAD(&semd_h);	
 }
 
-/* restituisce il puntatore a semd presente nella ASL la cui chiave è key
+/* restituisce il puntatore a semd presente nella ASL la cui chiave è key,
    NULL se non è presente
 */
 
@@ -60,6 +58,8 @@ int insertBlocked(int *key, pcb_t *p)
 			return 1;
 		else
 		{
+			//se il semaforo non è già stato utilizzato ne viene utilizzato uno dalla lista dei
+			//semafori liberi e spostato nella ASL
 		   	semd = container_of(semdFree_h.next,semd_t,s_next); 
 			list_del(semdFree_h.next);
 			semd->s_key = key;			
@@ -76,9 +76,6 @@ int insertBlocked(int *key, pcb_t *p)
 	key: chiave del semaforo
 	
 	return: puntatore al PCB che è stato rimosso; ritorna NULL se il semaforo indicato non è presente nella ASL
-
-	ATTENZIONE: la funzione non aggiorna il campo p_semkey di PCB perchè non so come va inizializzato e non è 
-	richiesto dalla specifica
 */
 
 pcb_t* removeBlocked(int *key)
@@ -87,10 +84,13 @@ pcb_t* removeBlocked(int *key)
 	pcb_t* pcb = NULL;
 	if (semd != NULL)	
 	{	
-		//semd->s_procQ.next è il puntatore al campo list_head del primo processo in coda
+		//semd->s_procQ.next è il puntatore al campo list_head del primo processo in coda sul semaforo
 		//per ottenere il puntatore alla struttura uso container_of
 		pcb = container_of(semd->s_procQ.next,pcb_t,p_next);
 		list_del(semd->s_procQ.next);
+		pcb->p_semkey = key;
+		//devo occuparmi anche di riportare il semaforo nella lista di quelli liberi se non ci sono piu'
+		//processi bloccati su di esso
 		if (list_empty(&semd->s_procQ)) 
 		{
 			list_del(&semd->s_next);
@@ -117,7 +117,7 @@ pcb_t* outBlocked(pcb_t *p)
 		if (semd != NULL)	
 		{
 			struct list_head *pos;
-			list_for_each(pos, &semd->s_procQ)
+			list_for_each(pos, &semd->s_procQ)    //ricerco il processo nella lista dei processi bloccati sul semaforo
 				if (container_of(pos, pcb_t, p_next) == p) 
 				{
 					pcb = p;					
@@ -126,6 +126,8 @@ pcb_t* outBlocked(pcb_t *p)
 			if (pcb != NULL)
 			{
 				__list_del(p->p_next.prev,p->p_next.next);
+				pcb->p_semkey = semd->s_key;
+				//dopo la rimozione del processo controllo se il semaforo è ancora utilizzato
 				if (list_empty(&semd->s_procQ)) 
 				{
 					list_del(&semd->s_next);
@@ -142,7 +144,6 @@ pcb_t* outBlocked(pcb_t *p)
 	key: chiave del semaforo
 	
 	return: processo in testa alla coda; NULL se il semaforo non è nella ASL e quindi non ha processi in coda
-
 */
 
 pcb_t* headBlocked(int *key)
@@ -150,7 +151,7 @@ pcb_t* headBlocked(int *key)
 	semd_t *semd = getSemd(key);
 	pcb_t* pcb = NULL;
 	if (semd != NULL && !(list_empty(&semd->s_procQ)))	
-		pcb = container_of(semd->s_procQ.next,pcb_t,p_next);  //stessa operazione effettuata nella funzione removeblocked
+		pcb = container_of(semd->s_procQ.next,pcb_t,p_next);  //operazione già presente nella funzione removeblocked
 	return pcb;
 }
 
@@ -159,7 +160,6 @@ pcb_t* headBlocked(int *key)
 
 	p: puntatore al processo da rimuovere
 */
-
 
 void outChildBlocked(pcb_t *p)
 {
@@ -174,84 +174,4 @@ void outChildBlocked(pcb_t *p)
 	}
 }
 
-
-/*test*/
-
-/*
-//stampa; versione per i terminale
-void semd_tTablePrint()
-{
-	//vettore dei SEMD
-	printf("vettore SEMD \n");
-	for (int index = 0; index < MAXPROC; index++)
-	{
-		printf("semd[%d]. %d \n",index,*(semd_table[index].s_key));	
-	}
-	//lista semdFree
-	printf("lista semdFree \n");
-	struct list_head* pos;
-    	list_for_each(pos,&semdFree_h)
-	{
-		semd_t* sem = container_of(pos,semd_t,s_next);
-		printf("chiave n. %d \n",*(sem->s_key));
-	}
-	//lista ASL
-	printf("lista ASL \n");
-	pos = NULL;
-    	list_for_each(pos,&semd_h) 
-	{
-		semd_t* sem = container_of(pos,semd_t,s_next);
-		printf("chiave n. %d \n",*(sem->s_key));
-		struct list_head* block;
-		list_for_each(block,&sem->s_procQ)
-			printf("	%d \n",container_of(block,pcb_t,p_next));
-	}
-}
-
-//stampa; versione per i test sulle macchine
-void tablePrint()
-{
-	//vettore dei SEMD
-	addokbuf(" \n");
-	addokbuf("vettore SEMD \n");
-	for (int index = 0; index < MAXPROC; index++)
-	{
-		addokbuf("semd[");
-		intprint(index); 		
-		addokbuf("]. ");
-		intprint(semd_table[index].s_key);
-		addokbuf(" \n");	
-	}
-	//lista semdFree
-	addokbuf("lista semdFree \n");
-	struct list_head* pos;
-	int count = 0;
-    	list_for_each(pos,&semdFree_h)
-	{
-		semd_t* sem = container_of(pos,semd_t,s_next);
-		intprint(count);
-		count++;
-		addokbuf("- ");
-		intprint(sem->s_key);
-		addokbuf("\n");
-	}
-	//lista ASL
-	addokbuf("lista ASL \n");
-	pos = NULL;
-    	list_for_each(pos,&semd_h) 
-	{
-		semd_t* sem = container_of(pos,semd_t,s_next);
-		addokbuf("chiave n. ");
-		intprint(sem->s_key);
-		addokbuf("\n");
-		struct list_head* block;
-		list_for_each(block,&sem->s_procQ){
-			addokbuf("	");
-			intprint(container_of(block,pcb_t,p_next));
-			addokbuf("\n");
-		}
-	}
-	addokbuf(" \n");
-}
-*/
 
