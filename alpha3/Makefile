@@ -1,6 +1,6 @@
 
 default:
-	@echo "Please specify a target"
+	@echo "Compile for target processor with either 'make uarm' or 'make umps2'"
 
 umps:
 	$(MAKE) -f umps_make

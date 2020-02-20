@@ -1,12 +1,20 @@
+#MAKEFILE FOR UMPS
+
+#uMPS cross-compiler
 CC = mipsel-linux-gnu-gcc
+#uMPS linker
 LD = mipsel-linux-gnu-ld
 
+#Referenced directories
 UMPS_DIR_PATH = ./umps_include
 INCLUDE_DIR_PATH = ./
 
-CFLAGS =  -ffreestanding -DTARGET_UMPS=1 -mips1 -mfp32 -I$(UMPS_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall -O0
+#Compiler flags
+CFLAGS =  -ffreestanding -mips1 -mfp32 -DTARGET_UMPS=1 -I$(UMPS_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall
+#Linker flags
 LDFLAGS = -nostdlib -T $(UMPS_DIR_PATH)/umpscore.ldscript
 
+#Look for missing files in here
 VPATH = $(UMPS_DIR_PATH)
 
 all : kernel.core.umps

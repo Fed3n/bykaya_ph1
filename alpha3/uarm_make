@@ -1,12 +1,20 @@
+#MAKEFILE FOR UARM
+
+#uArm cross-compiler
 CC = arm-none-eabi-gcc
+#uArm linker
 LD = arm-none-eabi-ld
 
+#Referenced directories
 UARM_DIR_PATH = ./uarm_include
 INCLUDE_DIR_PATH = ./
 
-CFLAGS = -mcpu=arm7tdmi -DTARGET_UARM=1 -I$(UARM_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall -O0
+#Compiler flags
+CFLAGS =  -O0 -mcpu=arm7tdmi -DTARGET_UARM=1 -I$(UARM_DIR_PATH) -I$(INCLUDE_DIR_PATH) -Wall
+#Linker flags
 LDFLAGS = -G0 -nostdlib -T $(UARM_DIR_PATH)/elf32ltsarm.h.uarmcore.x
 
+#Look for missing files in here
 VPATH = $(UARM_DIR_PATH)
 
 all : kernel
