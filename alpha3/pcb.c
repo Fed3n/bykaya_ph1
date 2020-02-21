@@ -127,9 +127,10 @@ pcb_t *outProcQ(struct list_head *head, pcb_t *p) {
 			if( p == temp) {
 				/*termino la funzione solo se p é uguale a temp*/
 				list_del(&(p->p_next));
-				return p;
+				break;
 			}
 		}
+		return p;
 	}
 }
 
@@ -138,6 +139,7 @@ pcb_t *outProcQ(struct list_head *head, pcb_t *p) {
 /* INIZIO PCB TREE */
 
 /*
+Ritorna 1 se il pcb_t in input non ha figli
 Chiama list_empty (che prende in input un list_head e ritorna 1 se la lista è vuota) su this->p_child,
 che è il list_head della lista dei figli di pcb_t
 */
@@ -146,6 +148,7 @@ int emptyChild(pcb_t *this){
 }
 
 /*
+Inserisce in coda alla lista dei figli del pcb prnt il pcb p
 Prima assegna prnt come genitore di p e poi aggiunge in coda il list_head p->sib al list_head prnt->p_child
 */
 void insertChild(pcb_t *prnt, pcb_t *p){
@@ -154,7 +157,8 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 }
 
 /*
-Se la lista dei figli di p non è vuota, rimuove p->child.next e lo ritorna
+Rimuove il primo figlio del pcb p e lo ritorna, se p non ha figli ritorna NULL
+Se la lista dei figli di p non è vuota, rimuove il primo figlio p->child.next e lo ritorna
 */
 pcb_t *removeChild(pcb_t *p){
 	if(emptyChild(p)) return NULL;
@@ -167,8 +171,9 @@ pcb_t *removeChild(pcb_t *p){
 }
 
 /*
-Se p ha un padre, allora rimuove p dalla lista di p->parent->p_child e lo ritorna,
-altrimenti ritorna NULL
+Rimuove il pcb p come figlio dal padre e lo ritorna, se non ha padre ritorna NULL
+Se p ha un padre, allora rimuove p iterando sulla lista di p->parent->p_child e 
+lo ritorna, altrimenti ritorna NULL
 */
 pcb_t *outChild(pcb_t *p){
 	if(p->p_parent == NULL) return NULL;
