@@ -53,9 +53,10 @@ semd_t* getSemd(int *key)
 int insertBlocked(int *key, pcb_t *p)
 {
 	semd_t *semd =  getSemd(key);
-	if (semd == NULL) 
+	if (semd == NULL)
+	{
 		if (list_empty(&semdFree_h))
-			return 1;
+			return 1;		
 		else
 		{
 			//se il semaforo non è già stato utilizzato ne viene utilizzato uno dalla lista dei
@@ -64,8 +65,9 @@ int insertBlocked(int *key, pcb_t *p)
 			list_del(semdFree_h.next);
 			semd->s_key = key;			
 			INIT_LIST_HEAD(&semd->s_procQ);
-			list_add_tail(semd,&semd_h);
+			list_add_tail(&semd->s_next,&semd_h);
 		}	
+	}
 	list_add(&p->p_next,&semd->s_procQ);
 	p->p_semkey = key;
 	return 0;	
@@ -94,6 +96,7 @@ pcb_t* removeBlocked(int *key)
 		if (list_empty(&semd->s_procQ)) 
 		{
 			list_del(&semd->s_next);
+			semd->s_key = NULL;
 			list_add(&semd->s_next,&semdFree_h);
 		}
 	}
@@ -130,7 +133,8 @@ pcb_t* outBlocked(pcb_t *p)
 				//dopo la rimozione del processo controllo se il semaforo è ancora utilizzato
 				if (list_empty(&semd->s_procQ)) 
 				{
-					list_del(&semd->s_next);
+					list_del(&semd->s_next);	
+					semd->s_key = NULL;
 					list_add(&semd->s_next,&semdFree_h);
 				}
 			}

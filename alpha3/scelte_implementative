@@ -1,0 +1,13 @@
+Scelte progettuali ed eventuali modifiche
+
+Parte ASL
+
+Abbiamo largamente utilizzato le funzioni e macro presente in listx perchè molto utili e non abbiamo avuto necessità di modificarle 
+perchè presenti in varianti più che sufficienti ai nostri scopi. Le strutture dati utilizzate sono attinenti alle richieste della consegna. E' presente infatti un vettore di semafori e due sentinelle di tipo list head per i semafori liberi ed i semafori utilizzati. 
+
+E' di interesse notare come la gestione delle chiavi associate al semaforo venga determinata esternamente all'implementazione dei 
+semafori e delle relative funzioni. Essi vengono infatti inizializzati con chiave NULL e successivamente una volta allocati presenteranno
+l'identificativo richiesto dall'esterno e presente come parametro della funzione insertBlocked. Quando un semaforo diventa libero viene reinserito nella lista apposita e riprende l'etichetta NULL fino a che non viene riattivato. In questa implementazione i semafori sono
+intercambiabili tra di loro tranne in fase di attività.
+
+Non sono state prese altre scelte implementative degne di nota. Abbiamo (Ho) cercato di racchiudere all'interno di una funzione ausiliaria alcune azioni ripetute all'interno delle funzioni outBlocked e removeBlocked ma ho successivamente abbandonato l'idea a causa di una leggera eterogeneità delle stesse, per il ridotto risparmio di codice ed in vigore di una maggiore linearità e chiarezza dello stesso.
