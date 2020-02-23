@@ -27,3 +27,5 @@ Nella funzione outChild, si itera sul list_head p_sib usando list_for_each perch
 #ASL#
 
 Anche qui come suggerito dalla specifica la memoria è allocata dichiarando un vettore globale HIDDEN e due sentinelle per le liste dei semafori liberi in uso anch'esse globali HIDDEN.
+
+Quando un semaforo è libero o lo diventa il campo s_key viene impostato a NULL. Questo rende i semafori liberi indistinguibili tra loro. Inoltre, con l'utilizzo delle sole chiavi provenienti dal parametro key della funzione insertBlocked per l'identificazione dei semafori è possibile scegliere esternamente quali valori utilizzare come chiavi, non è presente alcun vincolo.
