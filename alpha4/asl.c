@@ -56,7 +56,7 @@ int insertBlocked(int *key, pcb_t *p)
 	if (semd == NULL)
 	{
 		if (list_empty(&semdFree_h))
-			return 1;		
+			return TRUE;		
 		else
 		{
 			//se il semaforo non è già stato utilizzato ne viene utilizzato uno dalla lista dei
@@ -70,7 +70,7 @@ int insertBlocked(int *key, pcb_t *p)
 	}
 	list_add(&p->p_next,&semd->s_procQ);
 	p->p_semkey = key;
-	return 0;	
+	return FALSE;	
 }
 
 /* rimuove il primo processo bloccato sulla coda dei processi del semaforo relativo

@@ -19,7 +19,7 @@ VPATH = $(UARM_DIR_PATH)
 
 all : kernel
 
-kernel : p1test_bikaya_v0.o pcb.o asl.o crtso.o libuarm.o
+kernel : p1test_bikaya_v0.o pcb.o asl.o auxfun.o crtso.o libuarm.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 %.o : %.s

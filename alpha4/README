@@ -1,0 +1,14 @@
+Fase 1 del BIKAYA Project, Corso di Sistemi Operativi @Unibo 2019/2020
+Federico De Marchi, Stefano Sgarzi, Manuel Vannini
+
+Implementazione delle strutture dati che verranno usate a livello kernel del SO BIKAYA. Il programma esegue un test utilizzando il file fornito p1test_bikaya_v0.c che verifica che le strutture dati e le funzioni ad esse associate abbiano il comportamento atteso, dando feedback sul terminale 0 dell'emulatore.
+
+Compilare per l'emulatore desiderato uarm o umps2 con
+
+	make uarm
+
+	oppure
+
+	make umps2
+
+eseguito nella directory principale. La compilazione richiede il crosscompiler arm-none-eabi-gcc e il linker arm-none-eabi-ld per uarm o il crosscompiler mipsel-linux-gnu-gcc e il linker mipsel-linux-gnu-ld per umps. I file aggiuntivi sono ricercati localmente nelle directory uarm_include e umps_include.
