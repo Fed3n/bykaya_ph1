@@ -1,6 +1,7 @@
 #include "types_bikaya.h"
 #include "const.h"
 #include "pcb.h"
+#include "auxfun.h"
 
 /*Dichiaro un vettore di PCB con dimensione massima 20 (MAXPROC)*/
 HIDDEN pcb_t pcbFree_table[MAXPROC];
@@ -47,40 +48,7 @@ pcb_t *allocPcb(void) {
 		INIT_LIST_HEAD(&(temp->p_sib));
 		temp->priority = 0;
 		temp->p_semkey = NULL;
-		
-		#ifdef TARGET_UMPS
-		temp->p_s.pc_epc = 0;
-		temp->p_s.cause = 0;
-		temp->p_s.status = 0;
-		temp->p_s.entry_hi = 0;
-		temp->p_s.hi = 0;
-		temp->p_s.lo = 0;
-		for (int i = 0; i < STATE_GPR_LEN; i++) temp->p_s.gpr[i] = 0;
-		#elif defined(TARGET_UARM)
-		temp->p_s.a1 = 0;
-		temp->p_s.a2 = 0;
-		temp->p_s.a3 = 0;
-		temp->p_s.a4 = 0;
-		temp->p_s.v1 = 0;
-		temp->p_s.v2 = 0;
-		temp->p_s.v3 = 0;
-		temp->p_s.v4 = 0;
-		temp->p_s.v5 = 0;
-		temp->p_s.v6 = 0;
-		temp->p_s.sl = 0;
-		temp->p_s.fp = 0;
-		temp->p_s.ip = 0;
-		temp->p_s.sp = 0;
-		temp->p_s.lr = 0;
-		temp->p_s.pc = 0;
-		temp->p_s.cpsr = 0;
-		temp->p_s.CP15_Control = 0;
-		temp->p_s.CP15_EntryHi = 0;
-		temp->p_s.CP15_Cause = 0;
-		temp->p_s.TOD_Hi = 0;
-		temp->p_s.TOD_Low = 0; 
-		#endif
-		
+		ownmemset(&temp->p_s, 0, sizeof(temp->p_s));
 
 		/*Ritorno il puntatore temporaneo per terminare la funzione*/
 		return temp;
@@ -112,16 +80,16 @@ priorita’ più alta).*/
 void insertProcQ(struct list_head *head, pcb_t *p) {
 	/*Grazie al metodo list_for_each_entry, temp punta alla struttura che contiene p_next*/
 	pcb_t *temp;
-	int flag = 0;
+	int flag = FALSE;
 	list_for_each_entry(temp, head, p_next) {
 		/*Si aggiunge il PCB dove la priority sia maggiore del PCB seguente*/
-		if (p->priority > temp->priority && flag == 0) { 
+		if (p->priority > temp->priority && flag == FALSE) { 
 			list_add_tail(&(p->p_next), &(temp->p_next));
-			flag = 1;
+			flag = TRUE;
 		}
 	}
 	/*Si aggiunge il PCB in coda se non é stato aggiunto precedentemente*/
-	if (flag == 0) list_add_tail(&(p->p_next), head);
+	if (flag == FALSE) list_add_tail(&(p->p_next), head);
 }
 
 /*Restituisce l’elemento di testa della
@@ -170,17 +138,17 @@ pcb_t *outProcQ(struct list_head *head, pcb_t *p) {
 /* INIZIO PCB TREE */
 
 /*
-Ritorna 1 se il pcb_t in input non ha figli
+Ritorna TRUE se il pcb_t in input non ha figli.
 Chiama list_empty (che prende in input un list_head e ritorna 1 se la lista è vuota) su this->p_child,
-che è il list_head della lista dei figli di pcb_t
+che è il list_head della lista dei figli di pcb_t.
 */
 int emptyChild(pcb_t *this){
 	return list_empty(&this->p_child);
 }
 
 /*
-Inserisce in coda alla lista dei figli del pcb prnt il pcb p
-Prima assegna prnt come genitore di p e poi aggiunge in coda il list_head p->sib al list_head prnt->p_child
+Inserisce in coda alla lista dei figli del pcb prnt il pcb p.
+Prima assegna prnt come genitore di p e poi aggiunge in coda il list_head p->sib al list_head prnt->p_child.
 */
 void insertChild(pcb_t *prnt, pcb_t *p){
 	p->p_parent = prnt;
@@ -188,8 +156,8 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 }
 
 /*
-Rimuove il primo figlio del pcb p e lo ritorna, se p non ha figli ritorna NULL
-Se la lista dei figli di p non è vuota, rimuove il primo figlio p->child.next e lo ritorna
+Rimuove il primo figlio del pcb p e lo ritorna, se p non ha figli ritorna NULL.
+Se la lista dei figli di p non è vuota, rimuove il primo figlio p->child.next e lo ritorna.
 */
 pcb_t *removeChild(pcb_t *p){
 	if(emptyChild(p)) return NULL;
@@ -202,21 +170,21 @@ pcb_t *removeChild(pcb_t *p){
 }
 
 /*
-Rimuove il pcb p come figlio dal padre e lo ritorna, se non ha padre ritorna NULL
+Rimuove il pcb p come figlio dal padre e lo ritorna, se non ha padre ritorna NULL.
 Se p ha un padre, allora rimuove p iterando sulla lista di p->parent->p_child e 
-lo ritorna, altrimenti ritorna NULL
+lo ritorna, altrimenti ritorna NULL.
 */
 pcb_t *outChild(pcb_t *p){
 	if(p->p_parent == NULL) return NULL;
 	else{
 		/*Si usa un puntatore al list_head p_sib di p per identificare l'elemento da rimuovere*/
-		struct list_head *target = &(p->p_sib);
+		struct list_head *temp = &(p->p_sib);
 		struct list_head *iter;
 		/*Con un iteratore e il puntatore alla lista di figli del padre di p, si itera sulla lista
 		fino a trovare l'elemento cercato per poi cancellarlo*/
 		list_for_each(iter, &(p->p_parent->p_child)){
-			if(iter == target){
-				list_del(target);
+			if(iter == temp){
+				list_del(temp);
 				break;
 			}
 		}
